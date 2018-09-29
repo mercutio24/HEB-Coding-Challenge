@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Search</title>
+    <style>
+        <!-- CSS goes here -->
+    </style>
+    <script type="text/javascript">
+        function printTest() {
+            var req = new XMLHttpRequest();
+
+            req.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    displayResults(this.responseText);
+                }
+            };
+
+            req.open("GET", "http://localhost:9999/query");
+            req.send();
+        }
+
+        function query(byField) {
+            var req = new XMLHttpRequest();
+
+            var queryValue;
+
+            switch (byField) {
+                case "id":
+                    queryValue = document.getElementById("productId").value;
+                    break;
+                case "description":
+                    queryValue = document.getElementById("description").value;
+                    break;
+                case "department":
+                    queryValue = document.getElementById("department").value;
+                    break;
+                default:
+                    ;
+            }
+
+            if (!queryValue) {
+                setValidationError(byField);
+                return;
+            }
+
+            req.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    displayResults(this.responseText);
+                }
+            };
+
+            req.open("GET", "http://localhost:9999/products-ws?byField=" + byField + "&queryValue=" + queryValue);
+            req.send();
+        }
+
+        function setValidationError(byField) {
+            switch (byField) {
+                case "id":
+                    alert("Please enter a Product ID");
+                    break;
+                case "description":
+                    alert("Please enter a Description");
+                    break;
+                case "department":
+                    alert("Please select a Department");
+                    break;
+                default:
+                    ;
+            }
+        }
+
+        function displayResults(results) {
+            var resultsHead = document.getElementById("resultsHead");
+            resultsHead.setAttribute("style", "visibility: visible");
+
+            var resultsTable = document.getElementById("resultsTable");
+            var body = document.getElementById("resultsBody");
+
+            if (body) {
+                resultsTable.removeChild(body);
+            }
+
+            var resultsBody = document.createElement("tbody");
+            resultsBody.setAttribute("id", "resultsBody");
+
+            var theResults = JSON.parse(results);
+
+            for (var i = 0; i < theResults.length; i++) {
+                var theResult = theResults[i];
+                var row = document.createElement("tr");
+
+                for (var j = 0; j < theResult.length; j++) {
+                    var field = document.createElement("td");
+                    field.innerText = theResult[j];
+                    row.appendChild(field);
+                }
+
+                resultsBody.appendChild(row);
+            }
+
+            resultsTable.appendChild(resultsBody);
+        }
+    </script>
+</head>
+<body>
+<img src="heb-header.jpg">
+<p>
+    <h1>&mdash; Search for a product &mdash;</h1>
+</p>
+<table border="0" id="searchTable">
+    <tr>
+        <td>
+            <label>Product ID</label>
+            <input type="text" id="productId">
+        </td>
+        <td>
+            <button type="submit" onclick="query('id');">Search by Product ID</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label>Description</label>
+            <input type="text" id="description">
+        </td>
+        <td>
+            <button type="submit" onclick="query('description');">Search by Description</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label>Department</label>
+            <select id="department">
+                <option value="" selected></option>
+                <option value="Produce">Produce</option>
+                <option value="Grocery">Grocery</option>
+                <option value="Pharmacy">Pharmacy</option>
+            </select>
+        </td>
+        <td>
+            <button type="submit" onclick="query('department');">Search by Department</button>
+        </td>
+    </tr>
+    <!--
+    <tr>
+        <th colspan="2">
+            <br>
+            <input type="radio" name="includeAllTerms" checked> All of these
+            <input type="radio" name="includeAllTerms"> Any of these
+        </th>
+    </tr>
+    <tr>
+        <td>
+            <br><button type="submit"onclick="printTest()">Search Products</button>
+            <button type="submit"onclick="printTest()">Get All Products</button>
+        </td>
+    </tr>
+    -->
+</table>
+<br>
+<table border="0" id="resultsTable">
+    <thead id="resultsHead" style="visibility: hidden">
+        <tr>
+            <th>Product ID</th>
+            <th>Description</th>
+            <th>Date Last Sold</th>
+            <th>Shelf Life</th>
+            <th>Department</th>
+            <th>Price</th>
+            <th>Unit</th>
+            <th>xFor</th>
+            <th>Cost</th>
+        </tr>
+    </thead>
+</table>
+<br>
+<img src="heb-footer.jpg">
+</body>
+</html>
