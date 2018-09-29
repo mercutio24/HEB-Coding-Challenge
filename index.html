@@ -7,39 +7,17 @@
         <!-- CSS goes here -->
     </style>
     <script type="text/javascript">
-        function printTest() {
+       function getProducts(byField) {
             var req = new XMLHttpRequest();
-
-            req.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    displayResults(this.responseText);
-                }
-            };
-
-            req.open("GET", "http://localhost:9999/query");
-            req.send();
-        }
-
-        function query(byField) {
-            var req = new XMLHttpRequest();
-
+            var queryValueElement = document.getElementById(byField);
             var queryValue;
 
-            switch (byField) {
-                case "id":
-                    queryValue = document.getElementById("productId").value;
-                    break;
-                case "description":
-                    queryValue = document.getElementById("description").value;
-                    break;
-                case "department":
-                    queryValue = document.getElementById("department").value;
-                    break;
-                default:
-                    ;
+            if (queryValueElement) {
+                queryValue = queryValueElement.value.trim().toLowerCase();
             }
 
-            if (!queryValue) {
+            if (byField != "all" && !queryValue) {  // If not retrieving all products and no query value specified,
+                                                    // set the appropriate validation failed message
                 setValidationError(byField);
                 return;
             }
@@ -56,7 +34,7 @@
 
         function setValidationError(byField) {
             switch (byField) {
-                case "id":
+                case "productId":
                     alert("Please enter a Product ID");
                     break;
                 case "description":
@@ -66,7 +44,6 @@
                     alert("Please select a Department");
                     break;
                 default:
-                    ;
             }
         }
 
@@ -115,7 +92,7 @@
             <input type="text" id="productId">
         </td>
         <td>
-            <button type="submit" onclick="query('id');">Search by Product ID</button>
+            <button type="submit" onclick="getProducts('productId');">Search by Product ID</button>
         </td>
     </tr>
     <tr>
@@ -124,7 +101,7 @@
             <input type="text" id="description">
         </td>
         <td>
-            <button type="submit" onclick="query('description');">Search by Description</button>
+            <button type="submit" onclick="getProducts('description');">Search by Description</button>
         </td>
     </tr>
     <tr>
@@ -138,7 +115,12 @@
             </select>
         </td>
         <td>
-            <button type="submit" onclick="query('department');">Search by Department</button>
+            <button type="submit" onclick="getProducts('department');">Search by Department</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button type="submit" onclick="getProducts('all');">Get All Products</button>
         </td>
     </tr>
     <!--
