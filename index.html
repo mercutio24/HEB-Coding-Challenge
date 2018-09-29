@@ -7,19 +7,86 @@
         <!-- CSS goes here -->
     </style>
     <script type="text/javascript">
-       function getProducts(byField) {
+        /*
+        var numericOnly = /[\d]/g;
+        //var floatOnly = /[\d\.]/g;
+        var alphaOnly = /[A-Za-z]/g;
+
+        function validateKey(myfield, e, restrictionType) {
+            if (!e) {
+                var e = window.event;
+            }
+
+            if (e.keyCode) {
+                code = e.keyCode;
+            }
+            else if (e.which) {
+                code = e.which;
+            }
+
+            var character = String.fromCharCode(code);
+
+            // Remove focus if ESC pressed
+            if (code == 27) {
+                this.blur();
+                return false;
+            }
+
+            // validate input based on criteria passed
+            if (!e.ctrlKey && code != 9 && code != 8 && code != 36 && code != 37 && code != 38 && (code != 39 || (code == 39 && character == "'")) && code != 40) {
+                if (character.match(restrictionType)) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        */
+
+        window.onload = function (e) {
+            toggleSearchRow();
+        }
+
+       function getProducts(byField, params) {
             var req = new XMLHttpRequest();
             var queryValueElement = document.getElementById(byField);
+            var queryValueElement2 = document.getElementById(byField + "2");
             var queryValue;
+            var queryValue2;
 
             if (queryValueElement) {
                 queryValue = queryValueElement.value.trim().toLowerCase();
             }
 
-            if (byField != "all" && !queryValue) {  // If not retrieving all products and no query value specified,
-                                                    // set the appropriate validation failed message
-                setValidationError(byField);
-                return;
+            if (queryValueElement2) {
+                queryValue2 = queryValueElement2.value.trim().toLowerCase();
+            }
+
+            if (byField != "all") {
+                if (!queryValue) {                   // If not retrieving all products and no query value specified,
+                                                     // set the appropriate validation failed message
+                    setValidationError(byField);
+                    return;
+                }
+
+                if (params == 2 && !queryValue2) {   // If this is a two-parameter call and no second query value
+                                                     // specified, set the appropriate validation failed message
+                    setValidationError(byField + "2");
+                    return;
+                }
+
+                console.log(queryValue + "|" + queryValue2);
+                // If fields with a from and to range have a from greater than a to, set validation failed message
+                if (byField == "lastSoldDate" || byField == "shelfLife" || byField == "price" || byField == "cost") {
+                    console.log(queryValue + "/" + queryValue2);
+                    if (queryValue > queryValue2) {
+                        console.log(queryValue + " and " + queryValue2);
+
+                        setValidationError("range");
+                        return;
+                    }
+                }
             }
 
             req.onreadystatechange = function() {
@@ -28,40 +95,51 @@
                 }
             };
 
-            req.open("GET", "http://localhost:9999/products-ws?byField=" + byField + "&queryValue=" + queryValue);
+            req.open("GET", "http://localhost:9999/products-ws?byField=" + byField + "&queryValue=" + queryValue + "&queryValue2=" + queryValue2);
             req.send();
         }
 
         function setValidationError(byField) {
-            switch (byField) {
-                case "productId":
-                    alert("Please enter a Product ID");
-                    break;
-                case "description":
-                    alert("Please enter a Description");
-                    break;
-                case "department":
-                    alert("Please select a Department");
-                    break;
-                default:
-            }
+            var validationMessage = new Map();
+
+            validationMessage.set("productId", "Please enter a Product ID");
+            validationMessage.set("description", "Please enter a Description");
+            validationMessage.set("department", "Please select a Department");
+            validationMessage.set("lastSoldDate", "Please specify a From Date");
+            validationMessage.set("lastSoldDate2", "Please specify a To Date");
+            validationMessage.set("shelfLife", "Please specify a minimum Shelf Life");
+            validationMessage.set("shelfLife2", "Please specify a maximum Shelf Life");
+            validationMessage.set("price", "Please specify a minimum Price");
+            validationMessage.set("price2", "Please specify a maximum Price");
+            validationMessage.set("cost", "Please specify a minimum Cost");
+            validationMessage.set("cost2", "Please specify a maximum Cost");
+            validationMessage.set("range", "From value must not be greater than to value");
+
+            alert(validationMessage.get(byField));
         }
 
         function displayResults(results) {
+            clearProducts();
+
             var resultsHead = document.getElementById("resultsHead");
-            resultsHead.setAttribute("style", "visibility: visible");
-
             var resultsTable = document.getElementById("resultsTable");
-            var body = document.getElementById("resultsBody");
-
-            if (body) {
-                resultsTable.removeChild(body);
-            }
-
             var resultsBody = document.createElement("tbody");
             resultsBody.setAttribute("id", "resultsBody");
 
             var theResults = JSON.parse(results);
+
+            if (theResults.toString()) {
+                resultsHead.setAttribute("style", "display: inline");
+            }
+            else {
+                // No search results, hide the header and display the "no results" message
+                resultsHead.setAttribute("style", "display: none");
+
+                var noProductsRow = document.createElement("tr");
+                noProductsRow.innerHTML = "<h3>&mdash; No products found &mdash;</h3>";
+
+                resultsBody.appendChild(noProductsRow);
+            }
 
             for (var i = 0; i < theResults.length; i++) {
                 var theResult = theResults[i];
@@ -69,7 +147,17 @@
 
                 for (var j = 0; j < theResult.length; j++) {
                     var field = document.createElement("td");
-                    field.innerText = theResult[j];
+                    var resultString = theResult[j];
+
+                    if (j == 3) {   // Append " days" onto shelf life field
+                        resultString += " days";
+                    }
+
+                    if (j == 5 || j == 8) {   // Prepend "$" onto currency fields and format as currency value
+                        resultString = "$" + resultString.toLocaleString("en-us", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
+
+                    field.innerText = resultString;
                     row.appendChild(field);
                 }
 
@@ -78,6 +166,37 @@
 
             resultsTable.appendChild(resultsBody);
         }
+
+        function toggleSearchRow() {
+            clearProducts();
+
+            var rows = document.getElementsByName("searchRows");
+
+            for (var i = 0; i < rows.length; i++) {
+                rows[i].setAttribute("style", "display: none");
+            }
+
+            var rowId = document.getElementById("searchMode").value;
+
+            if (rowId == "showAll") {
+                getProducts("all", "");
+            }
+            else {
+                document.getElementById(rowId).setAttribute("style", "display: inline");
+            }
+        }
+
+        function clearProducts() {
+            var resultsTable = document.getElementById("resultsTable");
+            var body = document.getElementById("resultsBody");
+            var resultsHead = document.getElementById("resultsHead");
+
+            if (body) {
+                resultsTable.removeChild(body);
+            }
+
+            resultsHead.setAttribute("style", "display: none");
+        }
     </script>
 </head>
 <body>
@@ -85,44 +204,135 @@
 <p>
     <h1>&mdash; Search for a product &mdash;</h1>
 </p>
+<p>
+    <select id="searchMode" onchange="toggleSearchRow()">
+        <option value="productRow" selected>Search by Product ID</option>
+        <option value="descriptionRow">Search by Description</option>
+        <option value="departmentRow">Search by Department</option>
+        <option value="dateLastSoldRow">Search by Date Last Sold</option>
+        <option value="shelfLifeRow">Search by Shelf Life</option>
+        <option value="priceRow">Search by Price</option>
+        <option value="costRow">Search by Cost</option>
+        <option value="showAll">Show all Products</option>
+    </select>
+</p>
 <table border="0" id="searchTable">
-    <tr>
+    <tr id="productRow" name="searchRows">
         <td>
             <label>Product ID</label>
-            <input type="text" id="productId">
+            <input type="number" id="productId" step="1">
         </td>
         <td>
-            <button type="submit" onclick="getProducts('productId');">Search by Product ID</button>
+            <button type="submit" onclick="getProducts('productId', 1);">Search</button>
         </td>
     </tr>
-    <tr>
+    <tr id="descriptionRow" name="searchRows">
         <td>
             <label>Description</label>
             <input type="text" id="description">
         </td>
         <td>
-            <button type="submit" onclick="getProducts('description');">Search by Description</button>
+            <button type="submit" onclick="getProducts('description', 1);">Search</button>
         </td>
     </tr>
-    <tr>
+    <tr id="departmentRow" name="searchRows">
         <td>
             <label>Department</label>
-            <select id="department">
+            <select id="department" onchange="getProducts('department', 1);">
                 <option value="" selected></option>
                 <option value="Produce">Produce</option>
                 <option value="Grocery">Grocery</option>
                 <option value="Pharmacy">Pharmacy</option>
             </select>
         </td>
+        <!--
         <td>
-            <button type="submit" onclick="getProducts('department');">Search by Department</button>
+            <button type="submit" onclick="getProducts('department', 1);">Search by Department</button>
+        </td>
+        -->
+    </tr>
+    <tr id="dateLastSoldRow" name="searchRows">
+        <td>
+            Date last sold &mdash;
+            <label>Between</label>
+            <input type="date" id="lastSoldDate">
+        </td>
+        <td>
+            <label>and</label>
+            <input type="date" id="lastSoldDate2">
+        </td>
+        <td>
+            <button type="submit" onclick="getProducts('lastSoldDate', 2);">Search</button>
         </td>
     </tr>
+    <tr id="shelfLifeRow" name="searchRows">
+        <td>
+            Shelf life &mdash;
+            <label>Between</label>
+            <!--
+            <input type="text" id="shelfLife" onkeypress="return validateKey(this, event, numericOnly);" value="0">
+            -->
+            <input type="number" id="shelfLife" step="1">
+        </td>
+        <td>
+            <label>and</label>
+            <!--
+            <input type="text" id="shelfLife2" onkeypress="return validateKey(this, event, numericOnly);" value="0">
+            -->
+            <input type="number" id="shelfLife2" step="1">
+            days
+        </td>
+        <td>
+            <button type="submit" onclick="getProducts('shelfLife', 2);">Search</button>
+        </td>
+    </tr>
+    <tr id="priceRow" name="searchRows">
+        <td>
+            Price &mdash;
+            <label>Between</label>
+            <!--
+            <input type="text" id="price" onkeypress="return validateKey(this, event, floatOnly);" value="0">
+            -->
+            <input type="number" id ="price" step=".01">
+        </td>
+        <td>
+            <label>and</label>
+            <!--
+            <input type="text" id="price2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
+            -->
+            <input type="number" id ="price2" step=".01">
+        </td>
+        <td>
+            <button type="submit" onclick="getProducts('price', 2);">Search</button>
+        </td>
+    </tr>
+    <tr id="costRow" name="searchRows">
+        <td>
+            Cost &mdash;
+            <label>Between</label>
+            <!--
+            <input type="text" id="cost" onkeypress="return validateKey(this, event, floatOnly);" value="0">
+            -->
+            <input type="number" id ="cost" step=".01">
+        </td>
+        <td>
+            <label>and</label>
+            <!--
+            <input type="text" id="cost2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
+            -->
+            <input type="number" id ="cost2" step=".01">
+        </td>
+        <td>
+            <button type="submit" onclick="getProducts('cost', 2);">Search</button>
+        </td>
+    </tr>
+    <!--
     <tr>
         <td>
-            <button type="submit" onclick="getProducts('all');">Get All Products</button>
+            <button type="submit" onclick="getProducts('all', 1);">Get All Products</button>
         </td>
     </tr>
+    -->
     <!--
     <tr>
         <th colspan="2">
@@ -141,7 +351,7 @@
 </table>
 <br>
 <table border="0" id="resultsTable">
-    <thead id="resultsHead" style="visibility: hidden">
+    <thead id="resultsHead">
         <tr>
             <th>Product ID</th>
             <th>Description</th>
