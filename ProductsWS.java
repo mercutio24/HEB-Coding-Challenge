@@ -4,7 +4,7 @@ import java.io.*;
 import javax.servlet.http.*;
 
 enum ByField {
-    ID, DESCRIPTION, DEPARTMENT
+    PRODUCT_ID, DESCRIPTION, DEPARTMENT, ALL
 }
 
 public class ProductsWS extends HttpServlet {
@@ -18,8 +18,8 @@ public class ProductsWS extends HttpServlet {
         ByField byField = null;
 
         switch (request.getParameter("byField")) {
-            case "id":
-                byField = ByField.ID;
+            case "productId":
+                byField = ByField.PRODUCT_ID;
                 break;
             case "description":
                 byField = ByField.DESCRIPTION;
@@ -28,7 +28,7 @@ public class ProductsWS extends HttpServlet {
                 byField = ByField.DEPARTMENT;
                 break;
             default:
-                ;
+                byField = ByField.ALL;
         }
 
         String queryValue = request.getParameter("queryValue");

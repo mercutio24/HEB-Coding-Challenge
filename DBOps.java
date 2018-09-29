@@ -122,16 +122,16 @@ public class DBOps {
         StringBuilder queryBuilder = new StringBuilder("SELECT * FROM products");
 
         switch(byField) {
-            case ID:
+            case PRODUCT_ID:
                 queryBuilder.append(" WHERE id = ?");
                 break;
             case DESCRIPTION:
-                queryBuilder.append(" WHERE description LIKE ?");
+                queryBuilder.append(" WHERE LOWER(description) LIKE ?");
                 break;
             case DEPARTMENT:
-                queryBuilder.append(" WHERE department = ?");
+                queryBuilder.append(" WHERE LOWER(department) = ?");
                 break;
-            default: ;
+            default:    // Do nothing if getting all products
         }
 
         /*
@@ -178,7 +178,7 @@ public class DBOps {
             selectProducts = conn.prepareStatement(queryBuilder.toString());
 
             switch (byField) {
-                case ID:
+                case PRODUCT_ID:
                     selectProducts.setString(1, queryValue);
                     break;
                 case DESCRIPTION:
@@ -187,7 +187,7 @@ public class DBOps {
                 case DEPARTMENT:
                     selectProducts.setString(1, queryValue);
                     break;
-                default: ;
+                default:
             }
 
             /*
@@ -206,6 +206,7 @@ public class DBOps {
             }
             */
 
+            System.out.println("%" + queryValue + "%");
             products = selectProducts.executeQuery();
 
             while (products.next()) {
