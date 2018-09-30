@@ -9,7 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents query operations on the database
+ */
 public class DBOps {
+    // Some leftover code which could be useful for creation tests
     /*
         //String[] result1s = {"753542", "banana", "9/5/2017", "4d", "Produce", "$2.99", "lb", "1", "$0.44"};
         //String[] result2s = {"321654", "apples", "9/6/2017", "7d", "Produce", "$1.49", "lb", "1", "$0.20"};
@@ -35,6 +39,9 @@ public class DBOps {
     }
     */
 
+    /**
+     * Drops (if necessary) and creates the products table
+     */
     private static void createProductsTable() {
         String dropTable = "DROP TABLE products";
 
@@ -79,6 +86,11 @@ public class DBOps {
         }
     }
 
+    /**
+     * Builds a list of insert queries from the CSV file
+     *
+     * @return  Insert queries
+     */
     private static List<String> getInserts() {
         BufferedReader dbInput = null;
         List<String> inserts = new ArrayList<>();
@@ -93,12 +105,6 @@ public class DBOps {
                 String[] fields = line.split(",");
                 StringBuilder insertQuery = new StringBuilder("INSERT INTO PRODUCTS VALUES(");
 
-                /*
-                for (String field : fields) {
-                    insertQuery.append("'").append(field.trim()).append("'").append(", ");
-                }
-                */
-
                 insertQuery.append(fields[0].trim()).append(", ");
                 insertQuery.append("'").append(fields[1].trim()).append("'").append(", ");
                 insertQuery.append("'").append(fields[2].trim()).append("'").append(", ");
@@ -108,7 +114,6 @@ public class DBOps {
                 insertQuery.append("'").append(fields[6].trim()).append("'").append(", ");
                 insertQuery.append(fields[7].trim().replaceAll("[^0-9]", "")).append(", ");
                 insertQuery.append(fields[8].trim().replaceAll("[^0-9\\.]", "")).append(")");
-                //insertQuery.delete(insertQuery.length() - 2, insertQuery.length()); // Remove the trailing comma and space
 
                 inserts.add(insertQuery.toString());
             }
@@ -128,6 +133,9 @@ public class DBOps {
         return inserts;
     }
 
+    /**
+     * Populates data into the products table
+     */
     private static void populateProductsTable() {
         List<String> inserts = getInserts();
         Connection conn = null;
@@ -155,11 +163,22 @@ public class DBOps {
         }
     }
 
+    /**
+     * Builds the database
+     */
     public static void buildDB() {
         createProductsTable();
         populateProductsTable();
     }
 
+    /**
+     * Retrieves products from the database
+     *
+     * @param byField       Type of product
+     * @param queryValue    First search parameter
+     * @param queryValue2   Second search parameter
+     * @return              The product list as a JSON array
+     */
     public static JSONArray getProducts(ByField byField, String queryValue, String queryValue2) {
         JSONArray results = new JSONArray();
         StringBuilder queryBuilder = new StringBuilder("SELECT * FROM products");
@@ -176,6 +195,7 @@ public class DBOps {
 
         queryBuilder.append(queryBodies.get(byField));
 
+        // Leftover code from original approach
         /*
         boolean firstTerm = true;
         boolean hasId = (id != 0);
@@ -219,6 +239,7 @@ public class DBOps {
             conn = DriverManager.getConnection("jdbc:derby:../../../../Users/Liam/IdeaProjects/products;create=true");
             selectProducts = conn.prepareStatement(queryBuilder.toString());
 
+            // Is there a better way to do this?
             switch (byField) {
                 case PRODUCT_ID:
                     selectProducts.setInt(1, Integer.valueOf(queryValue));
@@ -245,6 +266,7 @@ public class DBOps {
                 default:    // Don't need to set anything if we're getting all products
             }
 
+            // Leftover code from original approach
             /*
             int queryIndex = 0;
 
@@ -275,12 +297,6 @@ public class DBOps {
                 product.put(products.getString(7));
                 product.put(products.getString(8));
                 product.put(products.getFloat(9));
-
-                /*
-                for (int i = 1; i < 10; i++) {
-                    product.put(products.getString(i));
-                }
-                */
 
                 results.put(product);
             }

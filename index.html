@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Product Search</title>
+    <title>Search for a Product</title>
     <script type="text/javascript">
+        // Code for field validation which does not work correctly, allows some special characters for "floatOnly"
         /*
         var numericOnly = /[\d]/g;
-        //var floatOnly = /[\d\.]/g;
+        var floatOnly = /[\d\.]/g;
         var alphaOnly = /[A-Za-z]/g;
 
         function validateKey(myfield, e, restrictionType) {
@@ -41,10 +42,21 @@
         }
         */
 
+        /**
+         * Displays the Search by Product ID row (the default) on page load
+         *
+         * @param   {Event} e           Page load event
+         */
         window.onload = function (e) {
             toggleSearchRow();
         }
 
+        /**
+         * Performs database search for products
+         *
+         * @param   {string} byField    Search category
+         * @param   {number} params     Number of search parameters
+         */
        function getProducts(byField, params) {
             var req = new XMLHttpRequest();
             var queryValueElement = document.getElementById(byField);
@@ -92,7 +104,12 @@
             req.send();
         }
 
-        function setValidationError(byField) {
+        /**
+         * Displays a field validation failure message
+         *
+         * @param   {string} category   Key for the type of active search
+         */
+        function setValidationError(category) {
             var validationMessage = new Map();
 
             validationMessage.set("productId", "Please enter a Product ID");
@@ -106,13 +123,20 @@
             validationMessage.set("price2", "Please specify a maximum Price");
             validationMessage.set("cost", "Please specify a minimum Cost");
             validationMessage.set("cost2", "Please specify a maximum Cost");
-            validationMessage.set("range", "From value must not be greater than to value");
+            validationMessage.set("range", '"From" is greater than "to"');
 
-            alert(validationMessage.get(byField));
+            document.getElementById("valMsg").innerText = validationMessage.get(category);
+            document.getElementById("valRow").setAttribute("style", "display: table-row-group");
         }
 
+        /**
+         * Displays the search results in the search results table and clears validation message
+         *
+         * @param   {string} results    Results retrieved from the database as a JSON array string
+         */
         function displayResults(results) {
             clearProducts();
+            clearValMsg();
 
             var resultsHead = document.getElementById("resultsHead");
             var resultsTable = document.getElementById("resultsTable");
@@ -122,18 +146,23 @@
             var theResults = JSON.parse(results);
 
             if (theResults.toString()) {
+                // Search results were returned, show the results table header row
+
+                resultsTable.setAttribute("style", "display: table-header-group");
                 resultsHead.setAttribute("style", "display: table-header-group");
             }
             else {
-                // No search results, hide the header and display the "no results" message
+                // No search results, show the results table, hide the header, and display the "no results" message
+                resultsTable.setAttribute("style", "display: table-header-group");
                 resultsHead.setAttribute("style", "display: none");
 
                 var noProductsRow = document.createElement("tr");
-                noProductsRow.innerHTML = "<h3>&mdash; No products found &mdash;</h3>";
+                noProductsRow.innerHTML = "<h3>&mdash; No Products found &mdash;</h3>";
 
                 resultsBody.appendChild(noProductsRow);
             }
 
+            // Build and add table row for each result
             for (var i = 0; i < theResults.length; i++) {
                 var theResult = theResults[i];
                 var row = document.createElement("tr");
@@ -162,8 +191,19 @@
             resultsTable.appendChild(resultsBody);
         }
 
+        /**
+         * Toggles the search category mode to selected
+         */
         function toggleSearchRow() {
+            /*
+                Should toggling the search row clear the validation message only, clear the search results,
+                or repeat the search based on the selected search row's values?
+            */
+            //clearValMsg();
             clearProducts();
+            //searchAgain();
+
+            clearValMsg();
 
             var rows = document.getElementsByName("searchRows");
 
@@ -177,10 +217,22 @@
                 getProducts("all", "");
             }
             else {
-                document.getElementById(rowId).setAttribute("style", "display: inline");
+                var activeRow = document.getElementById(rowId);
+                activeRow.setAttribute("style", "display: inline");
+
+                // Reset any drop-down field in search row to default -- necessary because search only triggers on
+                // drop-down value change
+                var dropBoxes = activeRow.getElementsByTagName("select");
+
+                for (var i = 0; i < dropBoxes.length; i++) {
+                    dropBoxes[i].value = "";
+                }
             }
         }
 
+        /**
+         * Resets the search results table
+         */
         function clearProducts() {
             var resultsTable = document.getElementById("resultsTable");
             var body = document.getElementById("resultsBody");
@@ -192,12 +244,20 @@
 
             resultsHead.setAttribute("style", "display: none");
         }
+
+        /**
+         * Clears the validation message
+         */
+        function clearValMsg() {
+            document.getElementById("valMsg").innerText="";
+            document.getElementById("valRow").setAttribute("style", "display: none");
+        }
     </script>
 </head>
 <body>
 <img src="heb-header.jpg">
 <p>
-    <h1>&mdash; Search for a product &mdash;</h1>
+    <h1>&mdash; Search for a Product &mdash;</h1>
 </p>
 <p>
     <select id="searchMode" onchange="toggleSearchRow()">
@@ -234,10 +294,10 @@
         <td>
             <label>Department</label>
             <select id="department" onchange="getProducts('department', 1);">
-                <option value="" selected></option>
-                <option value="Produce">Produce</option>
-                <option value="Grocery">Grocery</option>
-                <option value="Pharmacy">Pharmacy</option>
+                <option value="" selected>&mdash; Select a Department &mdash;</option>
+                <option value="produce">Produce</option>
+                <option value="grocery">Grocery</option>
+                <option value="pharmacy">Pharmacy</option>
             </select>
         </td>
         <!--
@@ -249,11 +309,11 @@
     <tr id="dateLastSoldRow" name="searchRows">
         <td>
             Date last sold &mdash;
-            <label>Between</label>
+            <label>From</label>
             <input type="date" id="lastSoldDate">
         </td>
         <td>
-            <label>and</label>
+            <label>to</label>
             <input type="date" id="lastSoldDate2">
         </td>
         <td>
@@ -263,14 +323,14 @@
     <tr id="shelfLifeRow" name="searchRows">
         <td>
             Shelf life &mdash;
-            <label>Between</label>
+            <label>From</label>
             <!--
             <input type="text" id="shelfLife" onkeypress="return validateKey(this, event, numericOnly);" value="0">
             -->
             <input type="number" id="shelfLife" step="1">
         </td>
         <td>
-            <label>and</label>
+            <label>to</label>
             <!--
             <input type="text" id="shelfLife2" onkeypress="return validateKey(this, event, numericOnly);" value="0">
             -->
@@ -284,14 +344,14 @@
     <tr id="priceRow" name="searchRows">
         <td>
             Price &mdash;
-            <label>Between</label>
+            <label>From</label>
             <!--
             <input type="text" id="price" onkeypress="return validateKey(this, event, floatOnly);" value="0">
             -->
             <input type="number" id ="price" step=".01">
         </td>
         <td>
-            <label>and</label>
+            <label>to</label>
             <!--
             <input type="text" id="price2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
             -->
@@ -304,14 +364,14 @@
     <tr id="costRow" name="searchRows">
         <td>
             Cost &mdash;
-            <label>Between</label>
+            <label>From</label>
             <!--
             <input type="text" id="cost" onkeypress="return validateKey(this, event, floatOnly);" value="0">
             -->
             <input type="number" id ="cost" step=".01">
         </td>
         <td>
-            <label>and</label>
+            <label>to</label>
             <!--
             <input type="text" id="cost2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
             -->
@@ -321,14 +381,12 @@
             <button type="submit" onclick="getProducts('cost', 2);">Search</button>
         </td>
     </tr>
-    <!--
-    <tr>
+    <tr id="valRow" name="searchRows" style="display: none">
         <td>
-            <button type="submit" onclick="getProducts('all', 1);">Get All Products</button>
+            <label id="valMsg" style="color: red"></label>
         </td>
     </tr>
-    -->
-    <!--
+    <!--    Leftover markup from original approach
     <tr>
         <th colspan="2">
             <br>
@@ -345,7 +403,7 @@
     -->
 </table>
 <br>
-<table border="1" id="resultsTable">
+<table border="1" id="resultsTable" style="display: none">
     <thead id="resultsHead">
         <tr>
             <th>Product ID</th>

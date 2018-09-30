@@ -9,7 +9,17 @@ enum ByField {
     PRODUCT_ID, DESCRIPTION, DEPARTMENT, LAST_SOLD_DATE, SHELF_LIFE, PRICE, COST, ALL
 }
 
+/**
+ * Web service for querying the products database
+ */
 public class ProductsWS extends HttpServlet {
+    /**
+     * Responds to get request with query results from database
+     *
+     * @param request       The http request
+     * @param response      The http response
+     * @throws IOException
+     */
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -36,6 +46,9 @@ public class ProductsWS extends HttpServlet {
         out.close();
     }
 
+    /**
+     * Call to build the database
+     */
     public void init() {
         DBOps.buildDB();
     }
