@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Product Search</title>
-    <style>
-        <!-- CSS goes here -->
-    </style>
     <script type="text/javascript">
         /*
         var numericOnly = /[\d]/g;
@@ -76,13 +73,9 @@
                     return;
                 }
 
-                console.log(queryValue + "|" + queryValue2);
                 // If fields with a from and to range have a from greater than a to, set validation failed message
                 if (byField == "lastSoldDate" || byField == "shelfLife" || byField == "price" || byField == "cost") {
-                    console.log(queryValue + "/" + queryValue2);
                     if (queryValue > queryValue2) {
-                        console.log(queryValue + " and " + queryValue2);
-
                         setValidationError("range");
                         return;
                     }
@@ -129,7 +122,7 @@
             var theResults = JSON.parse(results);
 
             if (theResults.toString()) {
-                resultsHead.setAttribute("style", "display: inline");
+                resultsHead.setAttribute("style", "display: table-header-group");
             }
             else {
                 // No search results, hide the header and display the "no results" message
@@ -158,12 +151,14 @@
                     }
 
                     field.innerText = resultString;
+                    //field.setAttribute("colspan", "1");
                     row.appendChild(field);
                 }
 
                 resultsBody.appendChild(row);
             }
 
+            resultsBody.setAttribute("style", "display: table-row-group");
             resultsTable.appendChild(resultsBody);
         }
 
@@ -350,7 +345,7 @@
     -->
 </table>
 <br>
-<table border="0" id="resultsTable">
+<table border="1" id="resultsTable">
     <thead id="resultsHead">
         <tr>
             <th>Product ID</th>
