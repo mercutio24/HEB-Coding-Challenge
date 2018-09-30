@@ -13,7 +13,7 @@ import java.util.Map;
  * Represents query operations on the database
  */
 public class DBOps {
-    // Some leftover code which could be useful for creation tests
+    // Some leftover code which could be useful for testing
     /*
         //String[] result1s = {"753542", "banana", "9/5/2017", "4d", "Produce", "$2.99", "lb", "1", "$0.44"};
         //String[] result2s = {"321654", "apples", "9/6/2017", "7d", "Produce", "$1.49", "lb", "1", "$0.20"};
