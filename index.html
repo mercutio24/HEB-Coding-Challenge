@@ -4,52 +4,9 @@
     <meta charset="UTF-8">
     <title>Search for a Product</title>
     <script type="text/javascript">
-        // Code for field validation which does not work correctly, allows some special characters for "floatOnly"
-        /*
-        var numericOnly = /[\d]/g;
-        var floatOnly = /[\d\.]/g;
-        var alphaOnly = /[A-Za-z]/g;
-
-        function validateKey(myfield, e, restrictionType) {
-            if (!e) {
-                var e = window.event;
-            }
-
-            if (e.keyCode) {
-                code = e.keyCode;
-            }
-            else if (e.which) {
-                code = e.which;
-            }
-
-            var character = String.fromCharCode(code);
-
-            // Remove focus if ESC pressed
-            if (code == 27) {
-                this.blur();
-                return false;
-            }
-
-            // validate input based on criteria passed
-            if (!e.ctrlKey && code != 9 && code != 8 && code != 36 && code != 37 && code != 38 && (code != 39 || (code == 39 && character == "'")) && code != 40) {
-                if (character.match(restrictionType)) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-        */
-
-        /**
-         * Displays the Search by Product ID row (the default) on page load
-         *
-         * @param   {Event} e           Page load event
-         */
         window.onload = function (e) {
             toggleSearchRow();
-        }
+        };
 
         /**
          * Performs database search for products
@@ -299,11 +256,6 @@
                 <option value="pharmacy">Pharmacy</option>
             </select>
         </td>
-        <!--
-        <td>
-            <button type="submit" onclick="getProducts('department', 1);">Search by Department</button>
-        </td>
-        -->
     </tr>
     <tr id="dateLastSoldRow" name="searchRows">
         <td>
@@ -323,16 +275,10 @@
         <td>
             Shelf life &mdash;
             <label>From</label>
-            <!--
-            <input type="text" id="shelfLife" onkeypress="return validateKey(this, event, numericOnly);" value="0">
-            -->
             <input type="number" id="shelfLife" step="1">
         </td>
         <td>
             <label>to</label>
-            <!--
-            <input type="text" id="shelfLife2" onkeypress="return validateKey(this, event, numericOnly);" value="0">
-            -->
             <input type="number" id="shelfLife2" step="1">
             days
         </td>
@@ -344,16 +290,10 @@
         <td>
             Price &mdash;
             <label>From</label>
-            <!--
-            <input type="text" id="price" onkeypress="return validateKey(this, event, floatOnly);" value="0">
-            -->
             <input type="number" id ="price" step=".01">
         </td>
         <td>
             <label>to</label>
-            <!--
-            <input type="text" id="price2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
-            -->
             <input type="number" id ="price2" step=".01">
         </td>
         <td>
@@ -364,16 +304,10 @@
         <td>
             Cost &mdash;
             <label>From</label>
-            <!--
-            <input type="text" id="cost" onkeypress="return validateKey(this, event, floatOnly);" value="0">
-            -->
             <input type="number" id ="cost" step=".01">
         </td>
         <td>
             <label>to</label>
-            <!--
-            <input type="text" id="cost2" onkeypress="return validateKey(this, event, floatOnly);" value="0">
-            -->
             <input type="number" id ="cost2" step=".01">
         </td>
         <td>
